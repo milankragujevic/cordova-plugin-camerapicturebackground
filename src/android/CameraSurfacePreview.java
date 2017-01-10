@@ -28,14 +28,14 @@ public class CameraSurfacePreview extends Service {
 	private static int camType;
 	private static String dirName;
 	private static int rotation;
-	
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
 	}
-	
+
 	public int onStartCommand (Intent intent, int flags, int startId){
-			
+
 		imageName = intent.getStringExtra("filename");
 		debugMessage("Image Name = "+imageName);
 		camType = intent.getIntExtra("camType", 0);
@@ -51,7 +51,7 @@ public class CameraSurfacePreview extends Service {
 
 	@SuppressWarnings("deprecation")
 	private static void takePhoto(final Context context) {
-		
+
 		final SurfaceView preview = new SurfaceView(context);
 		SurfaceHolder holder = preview.getHolder();
 		// deprecated setting, but required on Android versions prior to 3.0
@@ -88,6 +88,22 @@ public class CameraSurfacePreview extends Service {
 
 				camera.setDisplayOrientation(rotation);
 				Camera.Parameters params = camera.getParameters();
+
+				List<Camera.Size> sizes = params.getSupportedPictureSizes();
+				int pictureHeight = 0;
+				int pictureWidth = 0;
+				for (int i=0;i<sizes.size();i++) {
+					Log.i("PictureSize", "Supported Size: " +sizes.get(i).width + "height : " + sizes.get(i).height);
+					if (sizes.get(i).width >= 640 && sizes.get(i).width <= 1024) {
+						pictureWidth = sizes.get(i).width;
+						pictureHeight = sizes.get(i).height;
+						Log.i("PictureSize", "SELECTED Size: " + pictureWidth + "height : " + pictureHeight);
+						break;
+					}
+				}
+				if (pictureWidth > 0 && pictureHeight > 0) {
+					params.setPictureSize(pictureWidth, pictureHeight);
+				}
 				params.setJpegQuality(100);
 				if (params.getSceneMode() != null) {
 				    params.setSceneMode(Parameters.SCENE_MODE_STEADYPHOTO);
@@ -102,7 +118,8 @@ public class CameraSurfacePreview extends Service {
 
 					@Override
 					public void onPictureTaken(byte[] data, Camera camera) {
-						
+						debugMessage("onPictureTaken");
+
 						FileOutputStream outStream = null;
 						File sdDir = Environment
 								.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
@@ -112,10 +129,10 @@ public class CameraSurfacePreview extends Service {
 
 						if (!pictureFileDir.exists())
 							pictureFileDir.mkdir();
-						
+
 						SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss");
 						String date = dateFormat.format(new Date());
-						
+
 						String filepath = pictureFileDir.getPath()
 								+ File.separator +imageName+"-"+date+".jpg";
 
@@ -171,7 +188,7 @@ public class CameraSurfacePreview extends Service {
 	public IBinder onBind(Intent intent) {
 		return null;
 	}
-	
+
 	@Override
 	public void onDestroy(){
 		if (camera != null) {

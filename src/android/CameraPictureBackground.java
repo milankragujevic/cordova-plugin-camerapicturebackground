@@ -26,7 +26,7 @@ public class CameraPictureBackground extends CordovaPlugin {
 	/**
 	 * Sets the context of the Command. This can then be used to do things like
 	 * get file paths associated with the Activity.
-	 * 
+	 *
 	 * @param cordova
 	 *            The context of the main Activity.
 	 * @param webView
@@ -86,7 +86,7 @@ public class CameraPictureBackground extends CordovaPlugin {
 							"me.rahul.plugins.camerapicturebackground.CameraSurfacePreview");
 					intent.putExtras(bundle);
 					cordova.getActivity().startService(intent);
-					
+
 				}
 
 			});
@@ -112,17 +112,17 @@ public class CameraPictureBackground extends CordovaPlugin {
 		if (type.equalsIgnoreCase("back")) {
 			return backCameraID;
 		} else {
-			return frontCameraID;
+			return frontCameraID >= 0 ? frontCameraID : backCameraID;
 		}
 	}
-	
+
 	public void sendJavascript(String path) {
 		if(path != null)
 		{
 			//Log.d(TAG,"1st");
 			if(ctx != null){
 				//Log.d(TAG,"2nd");
-				
+
 				plresult = new PluginResult(PluginResult.Status.OK,path);
 				ctx.sendPluginResult(plresult);
 			}
