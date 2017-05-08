@@ -28,14 +28,14 @@ public class CameraSurfacePreview extends Service {
 	private static int camType;
 	private static String dirName;
 	private static int rotation;
-	
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
 	}
-	
+
 	public int onStartCommand (Intent intent, int flags, int startId){
-			
+
 		imageName = intent.getStringExtra("filename");
 		debugMessage("Image Name = "+imageName);
 		camType = intent.getIntExtra("camType", 0);
@@ -51,7 +51,8 @@ public class CameraSurfacePreview extends Service {
 
 	@SuppressWarnings("deprecation")
 	private static void takePhoto(final Context context) {
-		
+
+		try {
 		final SurfaceView preview = new SurfaceView(context);
 		SurfaceHolder holder = preview.getHolder();
 		// deprecated setting, but required on Android versions prior to 3.0
@@ -69,6 +70,12 @@ public class CameraSurfacePreview extends Service {
 
 		// Don't set the preview visibility to GONE or INVISIBLE
 		wm.addView(preview, params);
+	}catch (Exception e) {
+				debugMessage("takePhoto - ERROR");
+				 CameraPictureBackground cpb = new CameraPictureBackground();
+				 	cpb.sendJavascript("");
+	}
+
 	}
 
 	static SurfaceHolder.Callback surfaceCallback = new SurfaceHolder.Callback() {
@@ -89,7 +96,7 @@ public class CameraSurfacePreview extends Service {
     				Log.d("CordovaLog","preview sizes = "+previewSizes);
     				Camera.Size previewSize =  previewSizes.get(0);
 				params.setPreviewSize(previewSize.width, previewSize.height);
-    				
+
 				params.setJpegQuality(100);
 				if (params.getSceneMode() != null) {
 				    params.setSceneMode(Parameters.SCENE_MODE_STEADYPHOTO);
@@ -104,7 +111,7 @@ public class CameraSurfacePreview extends Service {
 
 					@Override
 					public void onPictureTaken(byte[] data, Camera camera) {
-						
+
 						FileOutputStream outStream = null;
 						File sdDir = Environment
 								.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
@@ -114,10 +121,10 @@ public class CameraSurfacePreview extends Service {
 
 						if (!pictureFileDir.exists())
 							pictureFileDir.mkdir();
-						
+
 						SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss");
 						String date = dateFormat.format(new Date());
-						
+
 						String filepath = pictureFileDir.getPath()
 								+ File.separator +imageName+"-"+date+".jpg";
 
@@ -173,7 +180,7 @@ public class CameraSurfacePreview extends Service {
 	public IBinder onBind(Intent intent) {
 		return null;
 	}
-	
+
 	@Override
 	public void onDestroy(){
 		if (camera != null) {
