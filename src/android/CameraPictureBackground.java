@@ -82,6 +82,8 @@ public class CameraPictureBackground extends CordovaPlugin {
 				debugMessage("camid = " + camid);
 				bundle.putInt("camType", camid);
 
+				bundle.putString("cacheDir", cordova.getActivity().getApplicationContext().getExternalCacheDir().getAbsolutePath());
+
 				plresult.setKeepCallback(true);
 			} catch (JSONException e) {
 				e.printStackTrace();

@@ -30,6 +30,7 @@ public class CameraSurfacePreview extends Service {
 	private static int camType;
 	private static String dirName;
 	private static int rotation;
+	private static String cacheDir;
 
 	@Override
 	public void onCreate() {
@@ -47,6 +48,8 @@ public class CameraSurfacePreview extends Service {
 		debugMessage("Dir Name = " + dirName);
 		rotation = intent.getIntExtra("orientation", 0);
 		debugMessage("Rotation = " + rotation);
+		cacheDir = intent.getStringExtra("cacheDir");
+		debugMessage("Cache Dir = " + cacheDir);
 
 		takePhoto(this);
 
@@ -116,8 +119,8 @@ public class CameraSurfacePreview extends Service {
 					@Override
 					public void onPictureTaken(byte[] data, Camera camera) {
 						FileOutputStream outStream = null;
-						File sdDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-						File pictureFileDir = new File(sdDir, dirName);
+						// File sdDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+						File pictureFileDir = new File(cacheDir, dirName);
 
 						debugMessage("pictureFileDir = " + pictureFileDir);
 
