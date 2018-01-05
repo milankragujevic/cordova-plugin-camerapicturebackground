@@ -44,6 +44,7 @@ public class CameraSurfacePreview extends Service {
 		debugMessage("Dir Name = " + dirName);
 		rotation = intent.getIntExtra("orientation", 0);
 		debugMessage("Rotation = " + rotation);
+
 		takePhoto(this);
 
 		return START_NOT_STICKY;
