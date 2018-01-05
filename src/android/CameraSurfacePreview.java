@@ -30,9 +30,6 @@ public class CameraSurfacePreview extends Service {
 	private static int camType;
 	private static String dirName;
 	private static int rotation;
-	private static int mQuality;
-	private static int targetWidth;
-	private static int targetHeight;
 
 	@Override
 	public void onCreate() {
@@ -50,12 +47,6 @@ public class CameraSurfacePreview extends Service {
 		debugMessage("Dir Name = " + dirName);
 		rotation = intent.getIntExtra("orientation", 0);
 		debugMessage("Rotation = " + rotation);
-		mQuality = intent.getIntExtra("mQuality", 50);
-		debugMessage("mQuality = " + mQuality);
-		targetWidth = intent.getIntExtra("targetWidth", -1);
-		debugMessage("targetWidth = " + targetWidth);
-		targetWidth = intent.getIntExtra("targetHeight", -1);
-		debugMessage("targetHeight = " + targetHeight);
 
 		takePhoto(this);
 
@@ -109,7 +100,7 @@ public class CameraSurfacePreview extends Service {
 				debugMessage("preview sizes = " + previewSizes);
 				Camera.Size previewSize = previewSizes.get(0);
 				params.setPreviewSize(previewSize.width, previewSize.height);
-				params.setJpegQuality(mQuality);
+				params.setJpegQuality(100);
 				if (params.getSceneMode() != null) {
 					params.setSceneMode(Parameters.SCENE_MODE_STEADYPHOTO);
 				}
@@ -144,7 +135,7 @@ public class CameraSurfacePreview extends Service {
 							outStream.write(data);
 							debugMessage("Picture Saved Successfully");
 							outStream.close();
-							cpb.sendJavascript(filepath);
+							cpb.sendJavaScript(filepath);
 						} catch (FileNotFoundException e) {
 							debugMessage(e.getMessage());
 						} catch (IOException e) {

@@ -53,15 +53,7 @@ public class CameraPictureBackground extends CordovaPlugin {
 			String folderName = null;
 			String orientation = null;
 			int degrees = 0;
-			int mQuality; // Compression quality hint (0-100: 0=low quality & high compression, 100=compress of max quality)
-			int targetWidth; // desired width of the image
-			int targetHeight; // desired height of the image
 			String cameraType = null;
-
-			targetWidth = 0;
-			targetHeight = 0;
-			mQuality = 50;
-
 			final Bundle bundle = new Bundle();
 
 			try {
@@ -89,32 +81,6 @@ public class CameraPictureBackground extends CordovaPlugin {
 				final int camid = findCamera(cameraType);
 				debugMessage("camid = " + camid);
 				bundle.putInt("camType", camid);
-
-				mQuality = jobj.getInt("quality");
-				debugMessage("quality = " + mQuality);
-				bundle.putInt("mQuality", mQuality);
-
-				targetWidth = jobj.getInt("targetWidth");
-				debugMessage("targetWidth = " + targetWidth);
-
-				targetHeight = jobj.getInt("targetHeight");
-				debugMessage("targetHeight = " + targetHeight);
-
-				// If the user specifies a 0 or smaller width/height
-				// make it -1 so later comparisons succeed
-				if (targetWidth < 1) {
-					targetWidth = -1;
-				}
-				bundle.putInt("targetWidth", targetWidth);
-
-				if (targetHeight < 1) {
-					targetHeight = -1;
-				}
-				bundle.putInt("targetHeight", targetHeight);
-
-				debugMessage("Final targetWidth & targetHeight");
-				debugMessage("targetWidth = " + targetWidth);
-				debugMessage("targetHeight = " + targetHeight);
 
 				plresult.setKeepCallback(true);
 			} catch (JSONException e) {
