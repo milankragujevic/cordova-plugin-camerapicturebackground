@@ -49,23 +49,28 @@ public class CameraPictureBackground extends CordovaPlugin {
 
 			try {
 				JSONObject jobj = args.getJSONObject(0);
+
 				filename = jobj.getString("name");
 				// Log.d(TAG, "Filename = " + filename);
 				bundle.putString("filename", filename);
+
 				folderName = jobj.getString("dirName");
 				// Log.d(TAG, "dirName = " + filename);
 				bundle.putString("dirName", folderName);
+
 				orientation = jobj.getString("orientation");
 				// Log.d(TAG, "orientation = " + filename);
 				if (orientation.equalsIgnoreCase("portrait")) {
 					degrees = 90;
 				}
 				bundle.putInt("orientation", degrees);
+
 				cameraType = jobj.getString("type");
 				// Log.d(TAG, "cameraType = " + cameraType);
 				final int camid = findCamera(cameraType);
 				// Log.d(TAG, "camid = " + camid);
 				bundle.putInt("camType", camid);
+
 				plresult.setKeepCallback(true);
 			} catch (JSONException e) {
 				e.printStackTrace();
