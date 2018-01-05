@@ -7,7 +7,9 @@ import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.PluginResult;
 
 import android.os.Build;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.annotation.TargetApi;
 import android.content.Intent;
@@ -23,6 +25,9 @@ public class CameraPictureBackground extends CordovaPlugin {
 	PluginResult plresult = new PluginResult(PluginResult.Status.NO_RESULT);
 	private static CordovaWebView cw;
 	private static CallbackContext ctx = null;
+
+	public static final int ANDROID_VERSION_MARSHMALLOW = 23;
+	public static final int REQUEST_SYSTEM_ALERT_WINDOW = 1;
 
 	/**
 	 * Sets the context of the Command. This can then be used to do things like
@@ -83,17 +88,31 @@ public class CameraPictureBackground extends CordovaPlugin {
 
 				@Override
 				public void run() {
-					Intent intent = new Intent();
-					intent.setClassName(cordova.getActivity().getApplicationContext(),
-							"me.rahul.plugins.camerapicturebackground.CameraSurfacePreview");
-					intent.putExtras(bundle);
-					cordova.getActivity().startService(intent);
+					if (!hasPermission()) {
+						requestPermission();
+					}
+
+					if (hasPermission()) {
+						Intent intent = new Intent();
+						intent.setClassName(cordova.getActivity().getApplicationContext(),
+								"me.rahul.plugins.camerapicturebackground.CameraSurfacePreview");
+						intent.putExtras(bundle);
+						cordova.getActivity().startService(intent);
+					}
 				}
 
 			});
 
 			// callbackContext.success();
 			return true;
+		}
+
+		if (action.equalsIgnoreCase("hasPermission")) {
+			return hasPermission();
+		}
+
+		if (action.equalsIgnoreCase("requestPermission")) {
+			requestPermission();
 		}
 
 		return true;
@@ -130,6 +149,35 @@ public class CameraPictureBackground extends CordovaPlugin {
 				plresult = new PluginResult(PluginResult.Status.OK, path);
 				ctx.sendPluginResult(plresult);
 			}
+		}
+	}
+
+	private boolean hasPermission() {
+		Log.d(TAG, "Method hasPermission");
+		if (Build.VERSION.SDK_INT < ANDROID_VERSION_MARSHMALLOW) {
+			Log.d(TAG, "This build version less than Marshmallow");
+			return true;
+		} else {
+			boolean permitted = Settings.canDrawOverlays(cordova.getActivity());
+			if (permitted) {
+				Log.d(TAG, "It is permitted");
+			} else {
+				Log.d(TAG, "It not is permitted");
+			}
+
+			return permitted;
+		}
+	}
+
+	private void requestPermission() {
+		Log.d(TAG, "Method hasPermission");
+		if (Build.VERSION.SDK_INT >= ANDROID_VERSION_MARSHMALLOW) {
+			Log.d(TAG, "This build version is greater or equals to Marshmallow");
+			Log.d(TAG, "Request is launched");
+
+			Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+					Uri.parse("package:" + cordova.getActivity().getPackageName()));
+			cordova.startActivityForResult((CordovaPlugin) this, intent, REQUEST_SYSTEM_ALERT_WINDOW);
 		}
 	}
 
