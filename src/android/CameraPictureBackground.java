@@ -92,22 +92,25 @@ public class CameraPictureBackground extends CordovaPlugin {
 
 				mQuality = jobj.getInt("quality");
 				debugMessage("quality = " + mQuality);
+				bundle.putInt("mQuality", mQuality);
 
-				targetWidth = args.getInt("targetWidth");
+				targetWidth = jobj.getInt("targetWidth");
 				debugMessage("targetWidth = " + targetWidth);
 
-				targetHeight = args.getInt("targetHeight");
+				targetHeight = jobj.getInt("targetHeight");
 				debugMessage("targetHeight = " + targetHeight);
 
 				// If the user specifies a 0 or smaller width/height
 				// make it -1 so later comparisons succeed
-				if (this.targetWidth < 1) {
-					this.targetWidth = -1;
+				if (targetWidth < 1) {
+					targetWidth = -1;
 				}
+				bundle.putInt("targetWidth", targetWidth);
 
-				if (this.targetHeight < 1) {
-					this.targetHeight = -1;
+				if (targetHeight < 1) {
+					targetHeight = -1;
 				}
+				bundle.putInt("targetHeight", targetHeight);
 
 				debugMessage("Final targetWidth & targetHeight");
 				debugMessage("targetWidth = " + targetWidth);
