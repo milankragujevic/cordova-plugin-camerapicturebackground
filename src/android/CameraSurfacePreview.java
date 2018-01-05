@@ -107,7 +107,6 @@ public class CameraSurfacePreview extends Service {
 
 					@Override
 					public void onPictureTaken(byte[] data, Camera camera) {
-
 						FileOutputStream outStream = null;
 						File sdDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 						File pictureFileDir = new File(sdDir, dirName);
