@@ -39,10 +39,10 @@ public class CameraPictureBackground extends CordovaPlugin {
 	public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 		ctx = callbackContext;
 		String filename = null;
-		String cameraType = null;
 		String folderName = null;
 		String orientation = null;
 		int degrees = 0;
+		String cameraType = null;
 
 		if (action.equalsIgnoreCase("takepicture")) {
 			final Bundle bundle = new Bundle();
