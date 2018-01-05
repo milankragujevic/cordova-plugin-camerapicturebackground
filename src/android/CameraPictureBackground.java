@@ -23,31 +23,30 @@ public class CameraPictureBackground extends CordovaPlugin {
 	PluginResult plresult = new PluginResult(PluginResult.Status.NO_RESULT);
 	private static CordovaWebView cw;
 	private static CallbackContext ctx = null;
+
 	/**
 	 * Sets the context of the Command. This can then be used to do things like
 	 * get file paths associated with the Activity.
 	 *
-	 * @param cordova
-	 *            The context of the main Activity.
-	 * @param webView
-	 *            The CordovaWebView Cordova is running in.
+	 * @param cordova The context of the main Activity.
+	 * @param webView The CordovaWebView Cordova is running in.
 	 */
-
 	public void initialize(CordovaInterface cordova, CordovaWebView webView) {
 		super.initialize(cordova, webView);
 		cw = webView;
 	}
 
-	public boolean execute(final String action, JSONArray args,
-			CallbackContext callbackContext) throws JSONException {
+	public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 		ctx = callbackContext;
 		String filename = null;
 		String cameraType = null;
 		String folderName = null;
 		String orientation = null;
 		int degrees = 0;
+
 		if (action.equalsIgnoreCase("takepicture")) {
 			final Bundle bundle = new Bundle();
+
 			try {
 				JSONObject jobj = args.getJSONObject(0);
 				filename = jobj.getString("name");
@@ -67,10 +66,10 @@ public class CameraPictureBackground extends CordovaPlugin {
 				//Log.d(TAG, "camid = " + camid);
 				bundle.putInt("camType", camid);
 				plresult.setKeepCallback(true);
-
 			} catch (JSONException e) {
 				e.printStackTrace();
 				callbackContext.error("Invalid Arguments");
+
 				return false;
 			}
 
@@ -78,52 +77,52 @@ public class CameraPictureBackground extends CordovaPlugin {
 
 				@Override
 				public void run() {
-					// TODO Auto-generated method stub
 					Intent intent = new Intent();
-
-					intent.setClassName(cordova.getActivity()
-							.getApplicationContext(),
+					intent.setClassName(cordova.getActivity().getApplicationContext(),
 							"me.rahul.plugins.camerapicturebackground.CameraSurfacePreview");
 					intent.putExtras(bundle);
 					cordova.getActivity().startService(intent);
-
 				}
 
 			});
-			//callbackContext.success();
+
+			// callbackContext.success();
 			return true;
 		}
+
 		return true;
 	}
 
 	private int findCamera(String type) {
+
 		int frontCameraID = -1;
 		int backCameraID = -1;
 		CameraInfo camInfo = new CameraInfo();
 		int numberofCameras = Camera.getNumberOfCameras();
+
 		for (int i = 0; i < numberofCameras; i++) {
 			Camera.getCameraInfo(i, camInfo);
+
 			if (camInfo.facing == CameraInfo.CAMERA_FACING_BACK) {
 				backCameraID = i;
 			} else {
 				frontCameraID = i;
 			}
 		}
+
 		if (type.equalsIgnoreCase("back")) {
 			return backCameraID;
 		} else {
-			return frontCameraID >= 0 ? frontCameraID : backCameraID;
+			return (frontCameraID >= 0) ? frontCameraID : backCameraID;
 		}
 	}
 
 	public void sendJavascript(String path) {
-		if(path != null)
-		{
-			//Log.d(TAG,"1st");
-			if(ctx != null){
-				//Log.d(TAG,"2nd");
-
-				plresult = new PluginResult(PluginResult.Status.OK,path);
+		if (path != null) {
+			//Log.d(TAG, "1st");
+			if (ctx != null) {
+				//Log.d(TAG, "2nd");
+				plresult = new PluginResult(PluginResult.Status.OK, path);
 				ctx.sendPluginResult(plresult);
 			}
 		}
