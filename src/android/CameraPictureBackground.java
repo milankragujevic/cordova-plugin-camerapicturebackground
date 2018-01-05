@@ -50,20 +50,21 @@ public class CameraPictureBackground extends CordovaPlugin {
 			try {
 				JSONObject jobj = args.getJSONObject(0);
 				filename = jobj.getString("name");
-				//Log.d(TAG, "Filename = " + filename);
+				// Log.d(TAG, "Filename = " + filename);
 				bundle.putString("filename", filename);
 				folderName = jobj.getString("dirName");
-				//Log.d(TAG, "dirName = " + filename);
+				// Log.d(TAG, "dirName = " + filename);
 				bundle.putString("dirName", folderName);
 				orientation = jobj.getString("orientation");
-				//Log.d(TAG, "orientation = " + filename);
-				if (orientation.equalsIgnoreCase("portrait"))
+				// Log.d(TAG, "orientation = " + filename);
+				if (orientation.equalsIgnoreCase("portrait")) {
 					degrees = 90;
+				}
 				bundle.putInt("orientation", degrees);
 				cameraType = jobj.getString("type");
-				//Log.d(TAG, "cameraType = " + cameraType);
+				// Log.d(TAG, "cameraType = " + cameraType);
 				final int camid = findCamera(cameraType);
-				//Log.d(TAG, "camid = " + camid);
+				// Log.d(TAG, "camid = " + camid);
 				bundle.putInt("camType", camid);
 				plresult.setKeepCallback(true);
 			} catch (JSONException e) {
@@ -94,7 +95,6 @@ public class CameraPictureBackground extends CordovaPlugin {
 	}
 
 	private int findCamera(String type) {
-
 		int frontCameraID = -1;
 		int backCameraID = -1;
 		CameraInfo camInfo = new CameraInfo();
@@ -119,9 +119,9 @@ public class CameraPictureBackground extends CordovaPlugin {
 
 	public void sendJavascript(String path) {
 		if (path != null) {
-			//Log.d(TAG, "1st");
+			// Log.d(TAG, "1st");
 			if (ctx != null) {
-				//Log.d(TAG, "2nd");
+				// Log.d(TAG, "2nd");
 				plresult = new PluginResult(PluginResult.Status.OK, path);
 				ctx.sendPluginResult(plresult);
 			}
