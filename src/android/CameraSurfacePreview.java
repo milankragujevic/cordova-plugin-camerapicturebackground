@@ -26,11 +26,12 @@ public class CameraSurfacePreview extends Service {
 
 	public static final String TAG = "CameraPictureBackground";
 	private static Camera camera = null;
-	private static String imageName;
-	private static int camType;
-	private static String dirName;
-	private static int rotation;
+
 	private static String cacheDir;
+	private static String folderName;
+	private static String fileName;
+	private static int orientation;
+	private static int cameraId;
 
 	@Override
 	public void onCreate() {
@@ -40,16 +41,16 @@ public class CameraSurfacePreview extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		debugMessage("Method onStartCommand");
 
-		imageName = intent.getStringExtra("filename");
-		debugMessage("Image Name = " + imageName);
-		camType = intent.getIntExtra("camType", 0);
-		debugMessage("Camera Type =" + camType);
-		dirName = intent.getStringExtra("dirName");
-		debugMessage("Dir Name = " + dirName);
-		rotation = intent.getIntExtra("orientation", 0);
-		debugMessage("Rotation = " + rotation);
 		cacheDir = intent.getStringExtra("cacheDir");
-		debugMessage("Cache Dir = " + cacheDir);
+		debugMessage(" + cacheDir = " + cacheDir);
+		folderName = intent.getStringExtra("folderName");
+		debugMessage(" + folderName = " + folderName);
+		fileName = intent.getStringExtra("fileName");
+		debugMessage(" + fileName = " + fileName);
+		orientation = intent.getIntExtra("orientation", 0);
+		debugMessage(" + orientation = " + orientation);
+		cameraId = intent.getIntExtra("cameraId", 0);
+		debugMessage(" + cameraId = " + cameraId);
 
 		takePhoto(this);
 
@@ -91,13 +92,13 @@ public class CameraSurfacePreview extends Service {
 			final CameraPictureBackground cpb = new CameraPictureBackground();
 
 			try {
-				camera = Camera.open(camType);
+				camera = Camera.open(cameraId);
 				try {
 					camera.setPreviewDisplay(holder);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
-				camera.setDisplayOrientation(rotation);
+				camera.setDisplayOrientation(orientation);
 				Camera.Parameters params = camera.getParameters();
 				List<Camera.Size> previewSizes = params.getSupportedPreviewSizes();
 				debugMessage("preview sizes = " + previewSizes);
@@ -111,7 +112,7 @@ public class CameraSurfacePreview extends Service {
 				if (focusModes.contains(Parameters.FOCUS_MODE_FIXED)) {
 					params.setFocusMode(Parameters.FOCUS_MODE_FIXED);
 				}
-				params.setRotation(rotation);
+				params.setRotation(orientation);
 				camera.setParameters(params);
 				camera.startPreview();
 				camera.takePicture(null, null, new PictureCallback() {
@@ -119,46 +120,53 @@ public class CameraSurfacePreview extends Service {
 					@Override
 					public void onPictureTaken(byte[] data, Camera camera) {
 						FileOutputStream outStream = null;
-						// File sdDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-						File pictureFileDir = new File(cacheDir, dirName);
 
-						debugMessage("pictureFileDir = " + pictureFileDir);
-
-						if (!pictureFileDir.exists()) {
-							pictureFileDir.mkdir();
+						File folder = null;
+						if (folderName == null) {
+							folder = new File(this.getTempDirectoryPath());
+						} else {
+							if (folderName.contains("/")) {
+								folder = new File(folderName.replace("file://", ""));
+							} else {
+								folder = new File(Environment.getExternalStorageDirectory() + "/" + folderName);
+							}
 						}
 
-						SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddhhmmss");
-						String date = dateFormat.format(new Date());
-						String filepath = pictureFileDir.getPath() + File.separator + imageName + "-" + date + ".jpg";
-						File pictureFile = new File(filepath);
-
-						try {
-							outStream = new FileOutputStream(pictureFile);
-							outStream.write(data);
-							debugMessage("Picture Saved Successfully");
-							outStream.close();
-							cpb.sendJavaScript(filepath);
-						} catch (FileNotFoundException e) {
-							debugMessage(e.getMessage());
-						} catch (IOException e) {
-							debugMessage(e.getMessage());
+						boolean success = true;
+						if (!folder.exists()) {
+							success = folder.mkdir();
 						}
 
-						if (camera != null) {
-							camera.stopPreview();
-							camera.release();
-							camera = null;
+						if (success) {
+							if (fileName == null) {
+								fileName = System.currentTimeMillis() + ".jpg";
+							} else {
+								fileName = fileName + "-" + System.currentTimeMillis() + ".jpg";
+							}
+
+							File file = new File(folder, fileName);
+							if (file.exists()) {
+								file.delete();
+							}
+
+							try {
+								FileOutputStream out = new FileOutputStream(file);
+								out.write(data);
+								debugMessage("Picture saved successfully");
+								out.close();
+								cpb.sendJavaScript(filepath);
+							} catch (FileNotFoundException e) {
+								debugMessage(e.getMessage());
+							} catch (IOException e) {
+								debugMessage(e.getMessage());
+							}
 						}
+
+						destroyCamera();
 					}
 				});
 			} catch (Exception e) {
-				if (camera != null) {
-					camera.stopPreview();
-					camera.release();
-					camera = null;
-				}
-
+				destroyCamera();
 				throw new RuntimeException(e);
 			}
 		}
@@ -167,6 +175,10 @@ public class CameraSurfacePreview extends Service {
 		}
 
 		public void surfaceDestroyed(SurfaceHolder holder) {
+			destroyCamera();
+		}
+
+		private void destroyCamera() {
 			if (camera != null) {
 				camera.stopPreview();
 				camera.release();

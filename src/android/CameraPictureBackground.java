@@ -49,40 +49,51 @@ public class CameraPictureBackground extends CordovaPlugin {
 		if (action.equalsIgnoreCase("takePicture")) {
 			debugMessage("Action: takePicture");
 
-			String filename = null;
 			String folderName = null;
+			String fileName = null;
 			String orientation = null;
 			int degrees = 0;
-			String cameraType = null;
+			String cameraDirection = null;
 			final Bundle bundle = new Bundle();
 
 			try {
-				JSONObject jobj = args.getJSONObject(0);
+				JSONObject jsonObject = args.getJSONObject(0);
 
 				// Take the values from the arguments if they're not already defined (this is tricky)
 
-				filename = jobj.getString("name");
-				debugMessage("Filename = " + filename);
-				bundle.putString("filename", filename);
+				bundle.putString("cacheDir", getCacheDirectoryPath());
+				debugMessage(" + cacheDir = " + getCacheDirectoryPath());
 
-				folderName = jobj.getString("dirName");
-				debugMessage("dirName = " + filename);
-				bundle.putString("dirName", folderName);
+				if (jsonObject.has("folderName")) {
+					folderName = jsonObject.getString("folderName");
+					debugMessage(" + folderName = " + folderName);
+				}
+				bundle.putString("folderName", folderName);
 
-				orientation = jobj.getString("orientation");
-				debugMessage("orientation = " + filename);
-				if (orientation.equalsIgnoreCase("portrait")) {
-					degrees = 90;
+				if (jsonObject.has("fileName")) {
+					fileName = jsonObject.getString("fileName");
+					debugMessage(" + fileName = " + fileName);
+				}
+				bundle.putString("fileName", fileName);
+
+				if (jsonObject.has("orientation")) {
+					orientation = jsonObject.getString("orientation");
+					debugMessage(" + orientation = " + orientation);
+					if (orientation.equalsIgnoreCase("portrait")) {
+						degrees = 90;
+					}
 				}
 				bundle.putInt("orientation", degrees);
 
-				cameraType = jobj.getString("cameraDirection");
-				debugMessage("cameraType = " + cameraType);
-				final int camid = findCamera(cameraType);
-				debugMessage("camid = " + camid);
-				bundle.putInt("camType", camid);
-
-				bundle.putString("cacheDir", getTempDirectoryPath());
+				if (jsonObject.has("cameraDirection")) {
+					cameraDirection = jsonObject.getString("cameraDirection");
+				} else {
+					cameraDirection = "back";
+				}
+				debugMessage(" + cameraDirection = " + cameraDirection);
+				final int cameraId = findCamera(cameraDirection);
+				debugMessage(" + cameraId = " + cameraId);
+				bundle.putInt("cameraId", cameraId);
 
 				plresult.setKeepCallback(true);
 			} catch (JSONException e) {
@@ -167,7 +178,7 @@ public class CameraPictureBackground extends CordovaPlugin {
 		}
 	}
 
-	private String getTempDirectoryPath() {
+	private String getCacheDirectoryPath() {
 		File cache = null;
 
 		// SD Card Mounted
