@@ -82,7 +82,7 @@ public class CameraPictureBackground extends CordovaPlugin {
 				debugMessage("camid = " + camid);
 				bundle.putInt("camType", camid);
 
-				bundle.putString("cacheDir", cordova.getActivity().getApplicationContext().getExternalCacheDir().getAbsolutePath());
+				bundle.putString("cacheDir", getTempDirectoryPath());
 
 				plresult.setKeepCallback(true);
 			} catch (JSONException e) {
@@ -165,6 +165,23 @@ public class CameraPictureBackground extends CordovaPlugin {
 				ctx.sendPluginResult(plresult);
 			}
 		}
+	}
+
+	private String getTempDirectoryPath() {
+		File cache = null;
+
+		// SD Card Mounted
+		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+			cache = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/"
+					+ cordova.getActivity().getPackageName() + "/cache/");
+		} else {
+			// Use internal storage
+			cache = cordova.getActivity().getCacheDir();
+		}
+
+		// Create the cache directory if it doesn't exist
+		cache.mkdirs();
+		return cache.getAbsolutePath();
 	}
 
 	private static void debugMessage(String message) {
