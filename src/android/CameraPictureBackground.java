@@ -42,39 +42,76 @@ public class CameraPictureBackground extends CordovaPlugin {
 	}
 
 	public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-		ctx = callbackContext;
-		String filename = null;
-		String folderName = null;
-		String orientation = null;
-		int degrees = 0;
-		String cameraType = null;
+		debugMessage("Method execute");
 
-		if (action.equalsIgnoreCase("takepicture")) {
+		ctx = callbackContext;
+
+		if (action.equalsIgnoreCase("takePicture")) {
+			debugMessage("Action: takePicture");
+
+			String filename = null;
+			String folderName = null;
+			String orientation = null;
+			int degrees = 0;
+			int mQuality; // Compression quality hint (0-100: 0=low quality & high compression, 100=compress of max quality)
+			int targetWidth; // desired width of the image
+			int targetHeight; // desired height of the image
+			String cameraType = null;
+
+			targetWidth = 0;
+			targetHeight = 0;
+			mQuality = 50;
+
 			final Bundle bundle = new Bundle();
 
 			try {
 				JSONObject jobj = args.getJSONObject(0);
 
+				// Take the values from the arguments if they're not already defined (this is tricky)
+
 				filename = jobj.getString("name");
-				// Log.d(TAG, "Filename = " + filename);
+				debugMessage("Filename = " + filename);
 				bundle.putString("filename", filename);
 
 				folderName = jobj.getString("dirName");
-				// Log.d(TAG, "dirName = " + filename);
+				debugMessage("dirName = " + filename);
 				bundle.putString("dirName", folderName);
 
 				orientation = jobj.getString("orientation");
-				// Log.d(TAG, "orientation = " + filename);
+				debugMessage("orientation = " + filename);
 				if (orientation.equalsIgnoreCase("portrait")) {
 					degrees = 90;
 				}
 				bundle.putInt("orientation", degrees);
 
-				cameraType = jobj.getString("type");
-				// Log.d(TAG, "cameraType = " + cameraType);
+				cameraType = jobj.getString("cameraDirection");
+				debugMessage("cameraType = " + cameraType);
 				final int camid = findCamera(cameraType);
-				// Log.d(TAG, "camid = " + camid);
+				debugMessage("camid = " + camid);
 				bundle.putInt("camType", camid);
+
+				mQuality = jobj.getInt("quality");
+				debugMessage("quality = " + mQuality);
+
+				targetWidth = args.getInt("targetWidth");
+				debugMessage("targetWidth = " + targetWidth);
+
+				targetHeight = args.getInt("targetHeight");
+				debugMessage("targetHeight = " + targetHeight);
+
+				// If the user specifies a 0 or smaller width/height
+				// make it -1 so later comparisons succeed
+				if (this.targetWidth < 1) {
+					this.targetWidth = -1;
+				}
+
+				if (this.targetHeight < 1) {
+					this.targetHeight = -1;
+				}
+
+				debugMessage("Final targetWidth & targetHeight");
+				debugMessage("targetWidth = " + targetWidth);
+				debugMessage("targetHeight = " + targetHeight);
 
 				plresult.setKeepCallback(true);
 			} catch (JSONException e) {
@@ -108,10 +145,14 @@ public class CameraPictureBackground extends CordovaPlugin {
 		}
 
 		if (action.equalsIgnoreCase("hasPermission")) {
+			debugMessage("Action: hasPermission");
+
 			return hasPermission();
 		}
 
 		if (action.equalsIgnoreCase("requestPermission")) {
+			debugMessage("Action: requestPermission");
+
 			requestPermission();
 		}
 
@@ -141,28 +182,36 @@ public class CameraPictureBackground extends CordovaPlugin {
 		}
 	}
 
-	public void sendJavascript(String path) {
+	public void sendJavaScript(String path) {
+		debugMessage("Method sendJavaScript");
+
 		if (path != null) {
-			// Log.d(TAG, "1st");
+			debugMessage("1st");
+
 			if (ctx != null) {
-				// Log.d(TAG, "2nd");
+				debugMessage("2nd");
 				plresult = new PluginResult(PluginResult.Status.OK, path);
 				ctx.sendPluginResult(plresult);
 			}
 		}
 	}
 
+	private static void debugMessage(String message) {
+		Log.d(TAG, message);
+	}
+
 	private boolean hasPermission() {
-		Log.d(TAG, "Method hasPermission");
+		debugMessage("Method hasPermission");
+
 		if (Build.VERSION.SDK_INT < ANDROID_VERSION_MARSHMALLOW) {
-			Log.d(TAG, "This build version less than Marshmallow");
+			debugMessage("This build version less than Marshmallow");
 			return true;
 		} else {
 			boolean permitted = Settings.canDrawOverlays(cordova.getActivity());
 			if (permitted) {
-				Log.d(TAG, "It is permitted");
+				debugMessage("It is permitted");
 			} else {
-				Log.d(TAG, "It not is permitted");
+				debugMessage("It not is permitted");
 			}
 
 			return permitted;
@@ -170,10 +219,11 @@ public class CameraPictureBackground extends CordovaPlugin {
 	}
 
 	private void requestPermission() {
-		Log.d(TAG, "Method hasPermission");
+		debugMessage("Method hasPermission");
+
 		if (Build.VERSION.SDK_INT >= ANDROID_VERSION_MARSHMALLOW) {
-			Log.d(TAG, "This build version is greater or equals to Marshmallow");
-			Log.d(TAG, "Request is launched");
+			debugMessage("This build version is greater or equals to Marshmallow");
+			debugMessage("Request is launched");
 
 			Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
 					Uri.parse("package:" + cordova.getActivity().getPackageName()));
