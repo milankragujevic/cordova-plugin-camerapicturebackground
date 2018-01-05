@@ -43,17 +43,27 @@ public class CameraPictureBackground extends CordovaPlugin {
 
 	public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 		ctx = callbackContext;
-		String filename = null;
-		String folderName = null;
-		String orientation = null;
-		int degrees = 0;
-		String cameraType = null;
 
-		if (action.equalsIgnoreCase("takepicture")) {
+		if (action.equalsIgnoreCase("takePicture")) {
+			String filename = null;
+			String folderName = null;
+			String orientation = null;
+			int degrees = 0;
+			int mQuality;                   // Compression quality hint (0-100: 0=low quality & high compression, 100=compress of max quality)
+			int targetWidth;                // desired width of the image
+			int targetHeight;               // desired height of the image
+			String cameraType = null;
+
+			targetWidth = 0;
+			targetHeight = 0;
+			mQuality = 50;
+
 			final Bundle bundle = new Bundle();
 
 			try {
 				JSONObject jobj = args.getJSONObject(0);
+
+				// Take the values from the arguments if they're not already defined (this is tricky)
 
 				filename = jobj.getString("name");
 				// Log.d(TAG, "Filename = " + filename);
@@ -70,11 +80,24 @@ public class CameraPictureBackground extends CordovaPlugin {
 				}
 				bundle.putInt("orientation", degrees);
 
-				cameraType = jobj.getString("type");
+				cameraType = jobj.getString("cameraDirection");
 				// Log.d(TAG, "cameraType = " + cameraType);
 				final int camid = findCamera(cameraType);
 				// Log.d(TAG, "camid = " + camid);
 				bundle.putInt("camType", camid);
+
+				mQuality = jobj.getInt("quality");
+				targetWidth = args.getInt("targetWidth");
+				targetHeight = args.getInt("targetHeight");
+
+				// If the user specifies a 0 or smaller width/height
+				// make it -1 so later comparisons succeed
+				if (this.targetWidth < 1) {
+					this.targetWidth = -1;
+				}
+				if (this.targetHeight < 1) {
+					this.targetHeight = -1;
+				}
 
 				plresult.setKeepCallback(true);
 			} catch (JSONException e) {
