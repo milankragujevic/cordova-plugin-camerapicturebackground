@@ -15,12 +15,19 @@ import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
+import android.hardware.Camera.CameraInfo;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.content.res.Configuration;
+import android.graphics.Matrix;
+import java.io.ByteArrayOutputStream;
 
 public class CameraSurfacePreview extends Service {
 
@@ -32,6 +39,9 @@ public class CameraSurfacePreview extends Service {
 	private static String fileName;
 	private static int orientation;
 	private static int cameraId;
+	private static int screenWidth;
+	private static int screenHeight;
+	private static int configOrientation;
 
 	@Override
 	public void onCreate() {
@@ -51,6 +61,12 @@ public class CameraSurfacePreview extends Service {
 		debugMessage(" + orientation = " + orientation);
 		cameraId = intent.getIntExtra("cameraId", 0);
 		debugMessage(" + cameraId = " + cameraId);
+		screenWidth = intent.getIntExtra("screenWidth", 0);
+		debugMessage(" + screenWidth = " + screenWidth);
+		screenHeight = intent.getIntExtra("screenHeight", 0);
+		debugMessage(" + screenWidth = " + screenWidth);
+		configOrientation = intent.getIntExtra("configOrientation", 0);
+		debugMessage(" + configOrientation = " + configOrientation);
 
 		takePhoto(this);
 
@@ -119,46 +135,134 @@ public class CameraSurfacePreview extends Service {
 
 					@Override
 					public void onPictureTaken(byte[] data, Camera camera) {
-						FileOutputStream outStream = null;
-
-						File folder = null;
-						if (folderName == null) {
-							folder = new File(this.getTempDirectoryPath());
-						} else {
-							if (folderName.contains("/")) {
-								folder = new File(folderName.replace("file://", ""));
-							} else {
-								folder = new File(Environment.getExternalStorageDirectory() + "/" + folderName);
-							}
-						}
-
-						boolean success = true;
-						if (!folder.exists()) {
-							success = folder.mkdir();
-						}
-
-						if (success) {
-							if (fileName == null) {
-								fileName = System.currentTimeMillis() + ".jpg";
-							} else {
-								fileName = fileName + "-" + System.currentTimeMillis() + ".jpg";
-							}
-
-							File file = new File(folder, fileName);
-							if (file.exists()) {
-								file.delete();
-							}
+						if (data != null) {
+							Bitmap bitmap = null;
 
 							try {
-								FileOutputStream out = new FileOutputStream(file);
-								out.write(data);
-								debugMessage("Picture saved successfully");
-								out.close();
-								cpb.sendJavaScript(filepath);
-							} catch (FileNotFoundException e) {
-								debugMessage(e.getMessage());
-							} catch (IOException e) {
-								debugMessage(e.getMessage());
+								bitmap = BitmapFactory.decodeByteArray(data, 0, (data != null) ? data.length : 0);
+
+								CameraInfo info = new CameraInfo();
+								Camera.getCameraInfo(cameraId, info);
+
+								if (configOrientation == Configuration.ORIENTATION_PORTRAIT) {
+									// Notice that width and height are reversed
+									// Bitmap scaled = Bitmap.createScaledBitmap(bitmap,
+									// screenHeight, screenWidth, true);
+									// int w = scaled.getWidth();
+									// int h = scaled.getHeight();
+									// Setting post rotate to 90
+									Matrix matrix = new Matrix();
+									matrix.postRotate(90);
+									if (cameraId == CameraInfo.CAMERA_FACING_FRONT) {
+										matrix.postRotate(180);
+									}
+									// Rotating Bitmap
+									bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(),
+											matrix, true);
+								} else
+								// LANDSCAPE MODE
+								{
+									Bitmap scaled = Bitmap.createScaledBitmap(bitmap, screenWidth, screenHeight, true);
+									bitmap = scaled;
+								}
+							} catch (Exception e) {
+							} catch (Error e) {
+							}
+
+							if (bitmap != null) {
+								/*
+								    ByteArrayOutputStream
+								        A specialized OutputStream for class for writing content to an
+								        (internal) byte array. As bytes are written to this stream, the byte
+								        array may be expanded to hold more bytes. When the writing is
+								        considered to be finished, a copy of the byte array can be
+								        requested from the class.
+								*/
+
+								/*
+								    public synchronized byte[] toByteArray ()
+								        Returns the contents of this ByteArrayOutputStream as a byte array.
+								        Any changes made to the receiver after returning will not be
+								        reflected in the byte array returned to the caller.
+								
+								        Returns
+								        this stream's current contents as a byte array.
+								*/
+
+								// Initializing a new ByteArrayOutputStream
+								ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+								/*
+								    public boolean compress (Bitmap.CompressFormat format, int quality, OutputStream stream)
+								        Write a compressed version of the bitmap to the specified outputstream.
+								        If this returns true, the bitmap can be reconstructed by passing a
+								        corresponding inputstream to BitmapFactory.decodeStream().
+								
+								        Note: not all Formats support all bitmap configs directly, so it is
+								        possible that the returned bitmap from BitmapFactory could be in
+								        a different bitdepth, and/or may have lost per-pixel alpha
+								        (e.g. JPEG only supports opaque pixels).
+								
+								        Parameters
+								        format : The format of the compressed image
+								        quality : Hint to the compressor, 0-100. 0 meaning compress for small
+											size, 100 meaning compress for max quality. Some formats,
+											like PNG which is lossless, will ignore the quality setting
+								        stream : The outputstream to write the compressed data.
+								
+								        Returns
+								true if successfully compressed to the specified stream.
+								*/
+
+								// Compress the bitmap to jpeg format and 100% image quality
+								bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+
+								// Create a byte array from ByteArrayOutputStream
+								data = stream.toByteArray();
+
+								// Create output
+								FileOutputStream outStream = null;
+
+								File folder = null;
+								if (folderName == null) {
+									folder = new File(cacheDir);
+								} else {
+									if (folderName.contains("/")) {
+										folder = new File(folderName.replace("file://", ""));
+									} else {
+										folder = new File(Environment.getExternalStorageDirectory() + "/" + folderName);
+									}
+								}
+
+								boolean success = true;
+								if (!folder.exists()) {
+									success = folder.mkdir();
+								}
+
+								if (success) {
+									if (fileName == null) {
+										fileName = System.currentTimeMillis() + ".jpg";
+									} else {
+										fileName = fileName + "-" + System.currentTimeMillis() + ".jpg";
+									}
+
+									File file = new File(folder, fileName);
+									if (file.exists()) {
+										file.delete();
+									}
+
+									try {
+										FileOutputStream out = new FileOutputStream(file);
+										out.write(data);
+										debugMessage("Picture saved successfully");
+										out.close();
+										cpb.sendJavaScript(file.getAbsolutePath());
+									} catch (FileNotFoundException e) {
+										debugMessage(e.getMessage());
+									} catch (IOException e) {
+										debugMessage(e.getMessage());
+									}
+								}
 							}
 						}
 

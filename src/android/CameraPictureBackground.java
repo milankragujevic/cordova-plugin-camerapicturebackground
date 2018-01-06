@@ -8,6 +8,7 @@ import org.apache.cordova.PluginResult;
 
 import android.os.Build;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -18,6 +19,8 @@ import android.hardware.Camera.CameraInfo;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
 
 public class CameraPictureBackground extends CordovaPlugin {
 
@@ -94,6 +97,21 @@ public class CameraPictureBackground extends CordovaPlugin {
 				final int cameraId = findCamera(cameraDirection);
 				debugMessage(" + cameraId = " + cameraId);
 				bundle.putInt("cameraId", cameraId);
+
+				int screenWidth = cordova.getActivity().getApplicationContext().getResources()
+						.getDisplayMetrics().widthPixels;
+				debugMessage(" + screenWidth = " + screenWidth);
+				bundle.putInt("screenWidth", screenWidth);
+
+				int screenHeight = cordova.getActivity().getApplicationContext().getResources()
+						.getDisplayMetrics().heightPixels;
+				debugMessage(" + screenHeight = " + screenHeight);
+				bundle.putInt("screenHeight", screenHeight);
+
+				int configOrientation = cordova.getActivity().getApplicationContext().getResources()
+						.getConfiguration().orientation;
+				debugMessage(" + configOrientation = " + configOrientation);
+				bundle.putInt("configOrientation", configOrientation);
 
 				plresult.setKeepCallback(true);
 			} catch (JSONException e) {
