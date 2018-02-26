@@ -44,8 +44,8 @@ public class CameraSurfacePreview extends Service {
     private static int screenHeight;
     private static int configOrientation;
     private static int quality;
-    private static int width;
-    private static int height;
+    private static int targetWidth;
+    private static int targetHeight;
 
     @Override
     public void onCreate() {
@@ -68,15 +68,15 @@ public class CameraSurfacePreview extends Service {
         screenWidth = intent.getIntExtra("screenWidth", 0);
         debugMessage(" + screenWidth = " + screenWidth);
         screenHeight = intent.getIntExtra("screenHeight", 0);
-        debugMessage(" + screenWidth = " + screenWidth);
+        debugMessage(" + screenHeight = " + screenHeight);
         configOrientation = intent.getIntExtra("configOrientation", 0);
         debugMessage(" + configOrientation = " + configOrientation);
         quality = intent.getIntExtra("quality", -1);
         debugMessage(" + quality = " + quality);
-        width = intent.getIntExtra("width", -1);
-        debugMessage(" + width = " + width);
-        height = intent.getIntExtra("height", -1);
-        debugMessage(" + height = " + height);
+        targetWidth = intent.getIntExtra("targetWidth", -1);
+        debugMessage(" + targetWidth = " + targetWidth);
+        targetHeight = intent.getIntExtra("targetHeight", -1);
+        debugMessage(" + targetHeight = " + targetHeight);
 
         takePhoto(this);
 
@@ -170,6 +170,7 @@ public class CameraSurfacePreview extends Service {
                                     if (cameraId == CameraInfo.CAMERA_FACING_FRONT) {
                                         matrix.postRotate(180);
                                     }
+
                                     // Rotating Bitmap
                                     bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(),
                                             matrix, true);
@@ -180,7 +181,9 @@ public class CameraSurfacePreview extends Service {
                                     bitmap = scaled;
                                 }
                             } catch (Exception e) {
+                                // Do nothing.
                             } catch (Error e) {
+                                // Do nothing.
                             }
 
                             if (bitmap != null) {
@@ -228,8 +231,8 @@ public class CameraSurfacePreview extends Service {
 								true if successfully compressed to the specified stream.
 								*/
 
-								// Resize width and height
-                                if ((width > 0) && (height > 0)) {
+								// Resize to targetWidth and to targetHeight
+                                if ((targetWidth > 0) && (targetHeight > 0)) {
 //                                    BitmapFactory.Options options = new BitmapFactory.Options();
 //                                    options.inJustDecodeBounds = true;
 //                                    BitmapFactory
@@ -341,8 +344,8 @@ public class CameraSurfacePreview extends Service {
                      * @return
                      */
                     private int[] calculateAspectRatio(int origWidth, int origHeight) {
-                        int newWidth = width;
-                        int newHeight = height;
+                        int newWidth = targetWidth;
+                        int newHeight = targetHeight;
 
                         // If no new width or height were specified return the original bitmap
                         if (newWidth <= 0 && newHeight <= 0) {

@@ -57,8 +57,8 @@ public class CameraPictureBackground extends CordovaPlugin {
             int degrees = 0;
             String cameraDirection;
             int quality = -1;
-            int width = -1;
-            int height = -1;
+            int targetWidth = -1;
+            int targetHeight = -1;
             final Bundle bundle = new Bundle();
 
             try {
@@ -121,17 +121,17 @@ public class CameraPictureBackground extends CordovaPlugin {
                 }
                 bundle.putInt("quality", quality);
 
-                if (jsonObject.has("width")) {
-                    width = jsonObject.getInt("width");
-                    debugMessage(" + width = " + width);
+                if (jsonObject.has("targetWidth")) {
+                    targetWidth = jsonObject.getInt("targetWidth");
+                    debugMessage(" + targetWidth = " + targetWidth);
                 }
-                bundle.putInt("width", width);
+                bundle.putInt("targetWidth", targetWidth);
 
-                if (jsonObject.has("height")) {
-                    height = jsonObject.getInt("height");
-                    debugMessage(" + height = " + height);
+                if (jsonObject.has("targetHeight")) {
+                    targetHeight = jsonObject.getInt("targetHeight");
+                    debugMessage(" + targetHeight = " + targetHeight);
                 }
-                bundle.putInt("height", height);
+                bundle.putInt("targetHeight", targetHeight);
 
                 plresult.setKeepCallback(true);
             } catch (JSONException e) {
