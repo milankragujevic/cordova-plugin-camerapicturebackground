@@ -144,246 +144,253 @@ public class CameraSurfacePreview extends Service {
                 params.setRotation(orientation);
                 camera.setParameters(params);
                 camera.startPreview();
-                camera.takePicture(null, null, new PictureCallback() {
+				final Handler handler = new Handler();
+				handler.postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						camera.takePicture(null, null, new PictureCallback() {
 
-                    @Override
-                    public void onPictureTaken(byte[] data, Camera camera) {
-                        if (data != null) {
-                            Bitmap bitmap = null;
+							@Override
+							public void onPictureTaken(byte[] data, Camera camera) {
+								if (data != null) {
+									Bitmap bitmap = null;
 
-                            try {
-                                bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+									try {
+										bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
 
-                                @SuppressWarnings("deprecation")
-                                CameraInfo info = new CameraInfo();
-                                Camera.getCameraInfo(cameraId, info);
+										@SuppressWarnings("deprecation")
+										CameraInfo info = new CameraInfo();
+										Camera.getCameraInfo(cameraId, info);
 
-                                if (configOrientation == Configuration.ORIENTATION_PORTRAIT) {
-                                    // Notice that width and height are reversed
-                                    // Bitmap scaled = Bitmap.createScaledBitmap(bitmap,
-                                    // screenHeight, screenWidth, true);
-                                    // int w = scaled.getWidth();
-                                    // int h = scaled.getHeight();
-                                    // Setting post rotate to 90
-                                    Matrix matrix = new Matrix();
-                                    matrix.postRotate(90);
-                                    if (cameraId == CameraInfo.CAMERA_FACING_FRONT) {
-                                        matrix.postRotate(180);
-                                    }
+										if (configOrientation == Configuration.ORIENTATION_PORTRAIT) {
+											// Notice that width and height are reversed
+											// Bitmap scaled = Bitmap.createScaledBitmap(bitmap,
+											// screenHeight, screenWidth, true);
+											// int w = scaled.getWidth();
+											// int h = scaled.getHeight();
+											// Setting post rotate to 90
+											Matrix matrix = new Matrix();
+											matrix.postRotate(90);
+											if (cameraId == CameraInfo.CAMERA_FACING_FRONT) {
+												matrix.postRotate(180);
+											}
 
-                                    // Rotating Bitmap
-                                    bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(),
-                                            matrix, true);
-                                } else
-                                // LANDSCAPE MODE
-                                {
-                                    Bitmap scaled = Bitmap.createScaledBitmap(bitmap, screenWidth, screenHeight, true);
-                                    bitmap = scaled;
-                                }
-                            } catch (Exception e) {
-                                // Do nothing.
-                            } catch (Error e) {
-                                // Do nothing.
-                            }
+											// Rotating Bitmap
+											bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(),
+													matrix, true);
+										} else
+										// LANDSCAPE MODE
+										{
+											Bitmap scaled = Bitmap.createScaledBitmap(bitmap, screenWidth, screenHeight, true);
+											bitmap = scaled;
+										}
+									} catch (Exception e) {
+										// Do nothing.
+									} catch (Error e) {
+										// Do nothing.
+									}
 
-                            if (bitmap != null) {
-								/*
-                                ByteArrayOutputStream
-                                A specialized OutputStream for class for writing content to an
-                                (internal) byte array. As bytes are written to this stream, the byte
-                                array may be expanded to hold more bytes. When the writing is
-                                considered to be finished, a copy of the byte array can be
-                                requested from the class.
-								*/
+									if (bitmap != null) {
+										/*
+										ByteArrayOutputStream
+										A specialized OutputStream for class for writing content to an
+										(internal) byte array. As bytes are written to this stream, the byte
+										array may be expanded to hold more bytes. When the writing is
+										considered to be finished, a copy of the byte array can be
+										requested from the class.
+										*/
 
-								/*
-                                public synchronized byte[] toByteArray ()
-                                Returns the contents of this ByteArrayOutputStream as a byte array.
-                                Any changes made to the receiver after returning will not be
-                                reflected in the byte array returned to the caller.
+										/*
+										public synchronized byte[] toByteArray ()
+										Returns the contents of this ByteArrayOutputStream as a byte array.
+										Any changes made to the receiver after returning will not be
+										reflected in the byte array returned to the caller.
 
-                                Returns
-                                this stream's current contents as a byte array.
-								*/
+										Returns
+										this stream's current contents as a byte array.
+										*/
 
-                                // Initializing a new ByteArrayOutputStream
-                                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+										// Initializing a new ByteArrayOutputStream
+										ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-								/*
-                                public boolean compress (Bitmap.CompressFormat format, int quality, OutputStream stream)
-                                Write a compressed version of the bitmap to the specified outputstream.
-                                If this returns true, the bitmap can be reconstructed by passing a
-                                corresponding inputstream to BitmapFactory.decodeStream().
+										/*
+										public boolean compress (Bitmap.CompressFormat format, int quality, OutputStream stream)
+										Write a compressed version of the bitmap to the specified outputstream.
+										If this returns true, the bitmap can be reconstructed by passing a
+										corresponding inputstream to BitmapFactory.decodeStream().
 
-                                Note: not all Formats support all bitmap configs directly, so it is
-                                possible that the returned bitmap from BitmapFactory could be in
-                                a different bitdepth, and/or may have lost per-pixel alpha
-                                (e.g. JPEG only supports opaque pixels).
+										Note: not all Formats support all bitmap configs directly, so it is
+										possible that the returned bitmap from BitmapFactory could be in
+										a different bitdepth, and/or may have lost per-pixel alpha
+										(e.g. JPEG only supports opaque pixels).
 
-                                Parameters
-                                format : The format of the compressed image
-                                quality : Hint to the compressor, 0-100. 0 meaning compress for small
-                                    size, 100 meaning compress for max quality. Some formats,
-                                    like PNG which is lossless, will ignore the quality setting
-                                stream : The outputstream to write the compressed data.
+										Parameters
+										format : The format of the compressed image
+										quality : Hint to the compressor, 0-100. 0 meaning compress for small
+											size, 100 meaning compress for max quality. Some formats,
+											like PNG which is lossless, will ignore the quality setting
+										stream : The outputstream to write the compressed data.
 
-                                Returns
-								true if successfully compressed to the specified stream.
-								*/
+										Returns
+										true if successfully compressed to the specified stream.
+										*/
 
-								// Resize to targetWidth and to targetHeight
-                                if ((targetWidth > 0) && (targetHeight > 0)) {
-//                                    BitmapFactory.Options options = new BitmapFactory.Options();
-//                                    options.inJustDecodeBounds = true;
-//                                    BitmapFactory
-                                    //BitmapFactory.decodeStream(FileHelper.getInputStreamFromUriString(uriString, cordova), null, options);
+										// Resize to targetWidth and to targetHeight
+										if ((targetWidth > 0) && (targetHeight > 0)) {
+		//                                    BitmapFactory.Options options = new BitmapFactory.Options();
+		//                                    options.inJustDecodeBounds = true;
+		//                                    BitmapFactory
+											//BitmapFactory.decodeStream(FileHelper.getInputStreamFromUriString(uriString, cordova), null, options);
 
-                                    // calc aspect ratio
-//                                    int[] retval = calculateAspectRatio(options.outWidth, options.outHeight);
+											// calc aspect ratio
+		//                                    int[] retval = calculateAspectRatio(options.outWidth, options.outHeight);
 
-//                                    options.inJustDecodeBounds = false;
-//                                    options.inSampleSize = calculateSampleSize(options.outWidth, options.outHeight, width, height);
-//                                    Bitmap unscaledBitmap = BitmapFactory.decodeStream(FileHelper.getInputStreamFromUriString(uriString, cordova), null, options);
-                                    //return Bitmap.createScaledBitmap(unscaledBitmap, retval[0], retval[1], true);
+		//                                    options.inJustDecodeBounds = false;
+		//                                    options.inSampleSize = calculateSampleSize(options.outWidth, options.outHeight, width, height);
+		//                                    Bitmap unscaledBitmap = BitmapFactory.decodeStream(FileHelper.getInputStreamFromUriString(uriString, cordova), null, options);
+											//return Bitmap.createScaledBitmap(unscaledBitmap, retval[0], retval[1], true);
 
-                                    int[] retval = calculateAspectRatio(bitmap.getWidth(), bitmap.getHeight());
-                                    bitmap = Bitmap.createScaledBitmap(bitmap, retval[0], retval[1], true);
-                                }
+											int[] retval = calculateAspectRatio(bitmap.getWidth(), bitmap.getHeight());
+											bitmap = Bitmap.createScaledBitmap(bitmap, retval[0], retval[1], true);
+										}
 
-                                // Compress the bitmap to jpeg format and 100% image quality
-                                bitmap.compress(Bitmap.CompressFormat.JPEG, (quality > 0) ? quality : 100, stream);
+										// Compress the bitmap to jpeg format and 100% image quality
+										bitmap.compress(Bitmap.CompressFormat.JPEG, (quality > 0) ? quality : 100, stream);
 
-                                // Create a byte array from ByteArrayOutputStream
-                                data = stream.toByteArray();
+										// Create a byte array from ByteArrayOutputStream
+										data = stream.toByteArray();
 
-                                // Create output
-                                FileOutputStream outStream = null;
+										// Create output
+										FileOutputStream outStream = null;
 
-                                File folder = null;
-                                if (folderName == null) {
-                                    folder = new File(cacheDir);
-                                } else {
-                                    if (folderName.contains("/")) {
-                                        folder = new File(folderName.replace("file://", ""));
-                                    } else {
-                                        folder = new File(Environment.getExternalStorageDirectory() + "/" + folderName);
-                                    }
-                                }
+										File folder = null;
+										if (folderName == null) {
+											folder = new File(cacheDir);
+										} else {
+											if (folderName.contains("/")) {
+												folder = new File(folderName.replace("file://", ""));
+											} else {
+												folder = new File(Environment.getExternalStorageDirectory() + "/" + folderName);
+											}
+										}
 
-                                boolean success = true;
-                                if (!folder.exists()) {
-                                    success = folder.mkdir();
-                                }
+										boolean success = true;
+										if (!folder.exists()) {
+											success = folder.mkdir();
+										}
 
-                                if (success) {
-                                    if (fileName == null) {
-                                        fileName = System.currentTimeMillis() + ".jpg";
-                                    } else {
-                                        fileName = fileName + "-" + System.currentTimeMillis() + ".jpg";
-                                    }
+										if (success) {
+											if (fileName == null) {
+												fileName = System.currentTimeMillis() + ".jpg";
+											} else {
+												fileName = fileName + "-" + System.currentTimeMillis() + ".jpg";
+											}
 
-                                    File file = new File(folder, fileName);
-                                    if (file.exists()) {
-                                        file.delete();
-                                    }
+											File file = new File(folder, fileName);
+											if (file.exists()) {
+												file.delete();
+											}
 
-                                    try {
-                                        FileOutputStream out = new FileOutputStream(file);
-                                        out.write(data);
-                                        debugMessage("Picture saved successfully");
-                                        out.close();
-                                        cpb.sendJavaScript(file.getAbsolutePath());
-                                    } catch (FileNotFoundException e) {
-                                        debugMessage("takePhoto.SurfaceHolder.Callback.surfaceCreated.camera.takePicture - ERROR: FileNotFoundException");
-                                        debugMessage(e.getMessage());
-                                        cpb.sendJavaScript("");
-                                    } catch (IOException e) {
-                                        debugMessage("takePhoto.SurfaceHolder.Callback.surfaceCreated.camera.takePicture - ERROR: IOException");
-                                        debugMessage(e.getMessage());
-                                        cpb.sendJavaScript("");
-                                    }
-                                }
-                            } else {
-                                debugMessage("takePhoto.SurfaceHolder.Callback.surfaceCreated.camera.takePicture - ERROR: Data fechted couldnt be processed");
-                                cpb.sendJavaScript("");
-                            }
-                        } else {
-                            debugMessage("takePhoto.SurfaceHolder.Callback.surfaceCreated.camera.takePicture - ERROR: Data not fetched");
-                            cpb.sendJavaScript("");
-                        }
+											try {
+												FileOutputStream out = new FileOutputStream(file);
+												out.write(data);
+												debugMessage("Picture saved successfully");
+												out.close();
+												cpb.sendJavaScript(file.getAbsolutePath());
+											} catch (FileNotFoundException e) {
+												debugMessage("takePhoto.SurfaceHolder.Callback.surfaceCreated.camera.takePicture - ERROR: FileNotFoundException");
+												debugMessage(e.getMessage());
+												cpb.sendJavaScript("");
+											} catch (IOException e) {
+												debugMessage("takePhoto.SurfaceHolder.Callback.surfaceCreated.camera.takePicture - ERROR: IOException");
+												debugMessage(e.getMessage());
+												cpb.sendJavaScript("");
+											}
+										}
+									} else {
+										debugMessage("takePhoto.SurfaceHolder.Callback.surfaceCreated.camera.takePicture - ERROR: Data fechted couldnt be processed");
+										cpb.sendJavaScript("");
+									}
+								} else {
+									debugMessage("takePhoto.SurfaceHolder.Callback.surfaceCreated.camera.takePicture - ERROR: Data not fetched");
+									cpb.sendJavaScript("");
+								}
 
-                        destroyCamera();
-                    }
+								destroyCamera();
+							}
 
-                    /**
-                     * Figure out what ratio we can load our image into memory at while still being bigger than
-                     * our desired width and height
-                     *
-                     * @param srcWidth
-                     * @param srcHeight
-                     * @param dstWidth
-                     * @param dstHeight
-                     * @return
-                     */
-                    private int calculateSampleSize(int srcWidth, int srcHeight, int dstWidth, int dstHeight) {
-                        final float srcAspect = (float)srcWidth / (float)srcHeight;
-                        final float dstAspect = (float)dstWidth / (float)dstHeight;
+							/**
+							 * Figure out what ratio we can load our image into memory at while still being bigger than
+							 * our desired width and height
+							 *
+							 * @param srcWidth
+							 * @param srcHeight
+							 * @param dstWidth
+							 * @param dstHeight
+							 * @return
+							 */
+							private int calculateSampleSize(int srcWidth, int srcHeight, int dstWidth, int dstHeight) {
+								final float srcAspect = (float)srcWidth / (float)srcHeight;
+								final float dstAspect = (float)dstWidth / (float)dstHeight;
 
-                        if (srcAspect > dstAspect) {
-                            return srcWidth / dstWidth;
-                        } else {
-                            return srcHeight / dstHeight;
-                        }
-                    }
+								if (srcAspect > dstAspect) {
+									return srcWidth / dstWidth;
+								} else {
+									return srcHeight / dstHeight;
+								}
+							}
 
-                    /**
-                     * Maintain the aspect ratio so the resulting image does not look smooshed
-                     *
-                     * @param origWidth
-                     * @param origHeight
-                     * @return
-                     */
-                    private int[] calculateAspectRatio(int origWidth, int origHeight) {
-                        int newWidth = targetWidth;
-                        int newHeight = targetHeight;
+							/**
+							 * Maintain the aspect ratio so the resulting image does not look smooshed
+							 *
+							 * @param origWidth
+							 * @param origHeight
+							 * @return
+							 */
+							private int[] calculateAspectRatio(int origWidth, int origHeight) {
+								int newWidth = targetWidth;
+								int newHeight = targetHeight;
 
-                        // If no new width or height were specified return the original bitmap
-                        if (newWidth <= 0 && newHeight <= 0) {
-                            newWidth = origWidth;
-                            newHeight = origHeight;
-                        }
-                        // Only the width was specified
-                        else if (newWidth > 0 && newHeight <= 0) {
-                            newHeight = (newWidth * origHeight) / origWidth;
-                        }
-                        // only the height was specified
-                        else if (newWidth <= 0 && newHeight > 0) {
-                            newWidth = (newHeight * origWidth) / origHeight;
-                        }
-                        // If the user specified both a positive width and height
-                        // (potentially different aspect ratio) then the width or height is
-                        // scaled so that the image fits while maintaining aspect ratio.
-                        // Alternatively, the specified width and height could have been
-                        // kept and Bitmap.SCALE_TO_FIT specified when scaling, but this
-                        // would result in whitespace in the new image.
-                        else {
-                            double newRatio = newWidth / (double) newHeight;
-                            double origRatio = origWidth / (double) origHeight;
+								// If no new width or height were specified return the original bitmap
+								if (newWidth <= 0 && newHeight <= 0) {
+									newWidth = origWidth;
+									newHeight = origHeight;
+								}
+								// Only the width was specified
+								else if (newWidth > 0 && newHeight <= 0) {
+									newHeight = (newWidth * origHeight) / origWidth;
+								}
+								// only the height was specified
+								else if (newWidth <= 0 && newHeight > 0) {
+									newWidth = (newHeight * origWidth) / origHeight;
+								}
+								// If the user specified both a positive width and height
+								// (potentially different aspect ratio) then the width or height is
+								// scaled so that the image fits while maintaining aspect ratio.
+								// Alternatively, the specified width and height could have been
+								// kept and Bitmap.SCALE_TO_FIT specified when scaling, but this
+								// would result in whitespace in the new image.
+								else {
+									double newRatio = newWidth / (double) newHeight;
+									double origRatio = origWidth / (double) origHeight;
 
-                            if (origRatio > newRatio) {
-                                newHeight = (newWidth * origHeight) / origWidth;
-                            } else if (origRatio < newRatio) {
-                                newWidth = (newHeight * origWidth) / origHeight;
-                            }
-                        }
+									if (origRatio > newRatio) {
+										newHeight = (newWidth * origHeight) / origWidth;
+									} else if (origRatio < newRatio) {
+										newWidth = (newHeight * origWidth) / origHeight;
+									}
+								}
 
-                        int[] retval = new int[2];
-                        retval[0] = newWidth;
-                        retval[1] = newHeight;
-                        return retval;
-                    }
+								int[] retval = new int[2];
+								retval[0] = newWidth;
+								retval[1] = newHeight;
+								return retval;
+							}
 
-                });
+						});
+					}
+				}, 900);
+               
             } catch (Exception e) {
                 destroyCamera();
 //                throw new RuntimeException(e);
