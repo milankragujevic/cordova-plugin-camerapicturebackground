@@ -26,6 +26,8 @@ import android.graphics.BitmapFactory;
 import android.content.res.Configuration;
 import android.graphics.Matrix;
 
+import android.os.Handler;
+
 import java.io.ByteArrayOutputStream;
 import org.apache.cordova.camera.FileHelper;
 
